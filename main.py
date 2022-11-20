@@ -27,4 +27,10 @@ for name in all_events.__dict__:
 
 # run flask server to keep the bot running (needed for replit host)
 keep_alive()
-bot.run(TOKEN)
+try:
+    bot.run(TOKEN)
+except KeyboardInterrupt:
+    bot.close()
+finally:
+    print('bot terminated successfully')
+    exit(0)
