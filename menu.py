@@ -1,5 +1,5 @@
-from discord import Button, ButtonStyle
-from discord.ui import View
+from discord import ButtonStyle
+from discord.ui import Button, View
 
 
 def create_menu(labels, methods, button_styles=None):
@@ -10,10 +10,11 @@ def create_menu(labels, methods, button_styles=None):
 
         async def callback(self, interaction):
             await self.sub_callback(interaction, self)
+    
     view = View()
     current_style = ButtonStyle.gray
     for i in range(len(labels)):
-        if button_styles != None:
+        if button_styles != None and i < len(button_styles):
             current_style = button_styles[i]
         button = SuperButton(
             label=labels[i],

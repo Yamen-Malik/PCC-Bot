@@ -2,7 +2,6 @@ from discord.ext import commands
 from discord import ButtonStyle, Interaction, Button
 from menu import create_menu
 from replit import db
-from menu import create_menu
 import random
 
 
@@ -14,11 +13,9 @@ async def on_member_join(member):
         if channel.name == db["welcome_channel"]:
             await channel.send(random.choice(db["welcome_messages"]).format(member.mention, member.guild.name))
             styles = ButtonStyle
-            view = create_menu(
-                ['Computer Science', 'Software Engineering',
-                    'Cyber Security', 'Artificial Intelligence'],
+            view = create_menu(db["new_member_roles"],
                 [choose_major]*3,
-                [styles.primary, styles.success, styles.danger]
+                [styles.primary, styles.success, styles.danger, styles.gray]
             )
             await member.send(f"Select your major", view=view)
             break
