@@ -1,5 +1,5 @@
 from discord.ext import commands
-from commands.decorators import command
+from utilities.decorators import command
 from events.on_member_join import on_member_join
 
 

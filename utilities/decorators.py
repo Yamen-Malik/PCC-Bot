@@ -4,7 +4,7 @@ from constants import default_command_data
 command_names = []
 
 
-def get_command_data(command: str):
+def get_command_data(command: str) -> dict:
     commands = db.get("commands", {})
     commands[command] = commands.get(command, default_command_data)
     db["commands"] = commands

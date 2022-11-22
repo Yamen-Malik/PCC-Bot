@@ -1,5 +1,5 @@
 from discord.ext import commands
-from commands.decorators import command, edit_command
+from utilities.decorators import command, edit_command
 
 
 @commands.command(name="disable", help="Disable one of the bot commands")

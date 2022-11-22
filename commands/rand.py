@@ -1,5 +1,5 @@
 from discord.ext import commands
-from commands.decorators import command
+from utilities.decorators import command
 import random
 
 

@@ -1,6 +1,6 @@
 from discord import Embed, PartialEmoji
 from discord.ext import commands
-from commands.decorators import command
+from utilities.decorators import command
 from constants import MAX_POLL_CHOICES, MAX_POLL_NAME_LENGTH
 from replit import db
 
