@@ -1,5 +1,5 @@
-from discord import Button, ButtonStyle
-from discord.ui import View
+from discord import ButtonStyle
+from discord.ui import View, Button
 
 
 def create_menu(labels, methods, button_styles=None):

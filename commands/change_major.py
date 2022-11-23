@@ -1,8 +1,8 @@
 from discord.ext import commands
 from discord import ButtonStyle
-from events.on_member_join import choose_major
+from utils.major.major import choose_major
+from utils.menu.menu import create_menu
 from commands.decorators import command
-from menu import create_menu
 
 
 @commands.command(name="change_major", help="Change your major role")
@@ -10,7 +10,8 @@ from menu import create_menu
 async def change_major(ctx):
     styles = ButtonStyle
     menu = create_menu(
-        ['Computer Science', 'Software Engineering', 'Cyber Security', 'Artificial Intelligence'],
+        ['Computer Science', 'Software Engineering',
+            'Cyber Security', 'Artificial Intelligence'],
         [choose_major]*3,
         [styles.primary, styles.success, styles.danger]
     )

@@ -1,8 +1,8 @@
 from discord.ext import commands
-from discord import ButtonStyle, Interaction, Button
-from menu import create_menu
+from discord import ButtonStyle
+from utils.menu.menu import create_menu
+from utils.major.major import choose_major
 from replit import db
-from menu import create_menu
 import random
 
 
@@ -22,18 +22,3 @@ async def on_member_join(member):
             )
             await member.send(f"Select your major", view=view)
             break
-
-
-async def choose_major(interaction: Interaction, button: Button):
-    member = interaction.user
-    major = button.label
-    role = None
-    for r in member.guild.roles:
-        if r.name.lower() == major.lower():
-            role = r
-    if role:
-        await member.add_roles(role)
-        await interaction.channel.send(f"{member.mention} your role now is {major}")
-        await interaction.message.delete()
-    else:
-        await interaction.channel.send(f'failed to change role')
