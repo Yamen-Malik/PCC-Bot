@@ -1,5 +1,5 @@
 from discord.ext import commands
-from utilities.decorators import command, edit_command
+from utils.decorators import command, edit_command
 
 
 @commands.command(name="disable", help="Disable one of the bot commands")
@@ -16,3 +16,5 @@ async def disable(ctx, command, command_data):
 async def enable(ctx, command, command_data):
     command_data["active"] = True
     await ctx.send(f"{command} is enabled")
+
+exported_commands = [disable, enable]

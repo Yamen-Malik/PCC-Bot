@@ -1,5 +1,5 @@
 from discord.ext import commands
-from utilities.decorators import command
+from utils.decorators import command
 
 
 @commands.command(name="delete", help="Delete last n messages")
@@ -18,3 +18,5 @@ async def delete(ctx, x):
             await ctx.channel.purge(limit=n+1)
     except:
         print("Invalid delete argument")
+
+exported_commands = [delete]

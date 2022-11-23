@@ -1,5 +1,5 @@
 from discord.ext import commands
-from utilities.decorators import command
+from utils.decorators import command
 from events.on_member_join import on_member_join
 
 
@@ -7,3 +7,5 @@ from events.on_member_join import on_member_join
 @command
 async def welcome(ctx):
     await on_member_join(ctx.author)
+
+exported_commands = [welcome]

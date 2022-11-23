@@ -1,5 +1,5 @@
-from events import all_events
-from commands import all_commands
+from events.all_events import bot_events
+from commands.all_commands import bot_commands
 import discord
 from discord.ext import commands
 from keep_alive import keep_alive
@@ -14,19 +14,13 @@ bot = commands.Bot(
 
 
 # add all the commands to current instance of the bot
-for name in all_commands.__dict__:
-    attr = getattr(all_commands, name)
-    if isinstance(attr, commands.Command):
-        bot.add_command(attr)
+for command in bot_commands:
+    bot.add_command(command)
 
 # add all the events to current instance of the bot
-for name in all_events.__dict__:
-    attr = getattr(all_events, name)
-    if callable(attr):
-        try:
-            bot.add_listener(attr)
-        except:
-            pass
+for event in bot_events:
+    bot.add_listener(event)
+
 
 # run flask server to keep the bot running (needed for replit host)
 keep_alive()

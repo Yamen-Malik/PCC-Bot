@@ -1,8 +1,8 @@
 from discord import Embed, PartialEmoji, utils
 from discord.ext import commands
-from utilities.decorators import command
+from utils.decorators import command
 from constants import MAX_POLL_CHOICES, MAX_POLL_NAME_LENGTH
-from utils.menu.menu import create_menu
+from utils.menu import create_menu
 from replit import db
 
 
@@ -72,7 +72,7 @@ async def poll_anon(ctx, description, *choices):
         await interaction.channel.send("Sorry, Don't know how to count yet")
     view = create_menu(
         names,
-        [handle_scores]*len(names)
+        [handle_scores]
     )
     embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar)
     await ctx.channel.send(embed=embed, view=view)
@@ -82,3 +82,5 @@ async def poll_anon(ctx, description, *choices):
 @command
 async def result(ctx):
     await ctx.send(str(db["polls"]))
+
+exported_commands = [poll, poll_auto, poll_anon, result]

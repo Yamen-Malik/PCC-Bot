@@ -1,9 +1,13 @@
-from commands.hello import hello
-from commands.change_role import change_role
-from commands.edit_command_data import enable, disable
-from commands.delete import delete
-from commands.poll import poll, result, poll_anon, poll_auto
-from commands.rand import rand, randint, randchoice, randuser
-from commands.quote import quote
+import os
 
-from commands.testing import welcome
+blacklist = ['all_commands.py']
+package = 'commands'
+
+bot_commands = []
+
+for file in os.scandir(f'./{package}'):
+    name, ext = os.path.splitext(file.name)
+    if not (file.is_file() and ext == '.py' and file.name not in blacklist):
+        continue
+    module = f'{package}.{name}'
+    bot_commands += getattr(__import__(module), name).exported_commands

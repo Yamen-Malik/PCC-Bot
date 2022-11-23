@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord import Embed
-from utilities.decorators import command
+from utils.decorators import command
 import requests
 
 
@@ -22,3 +22,5 @@ async def quote(ctx, id="random"):
         await ctx.send(embed=quote)
     except:
         await ctx.send("Error while requesting quote")
+
+exported_commands = [quote]

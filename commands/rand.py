@@ -1,5 +1,5 @@
 from discord.ext import commands
-from utilities.decorators import command
+from utils.decorators import command
 import random
 
 
@@ -47,3 +47,5 @@ async def randuser(ctx, server_wide=False):
     else:
         members = ctx.channel.members
     await ctx.send(random.choice(members).mention)
+
+exported_commands = [rand, randint, randchoice, randuser]

@@ -1,8 +1,8 @@
 from discord.ext import commands
 from discord import ButtonStyle
-from utilities.choose_role import choose_role
-from utilities.decorators import command
-from utilities.menu import create_menu
+from utils.choose_role import choose_role
+from utils.decorators import command
+from utils.menu import create_menu
 from replit import db
 
 
@@ -12,7 +12,9 @@ async def change_role(ctx):
     styles = ButtonStyle
     menu = create_menu(
         db["new_member_roles"],
-        choose_role,
+        [choose_role],
         [styles.primary, styles.success, styles.danger, styles.gray]
     )
     await ctx.send("Choose major:", view=menu)
+
+exported_commands = [change_role]
