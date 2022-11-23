@@ -22,8 +22,11 @@ for name in all_commands.__dict__:
 # add all the events to current instance of the bot
 for name in all_events.__dict__:
     attr = getattr(all_events, name)
-    if isinstance(attr, commands.Cog):
-        bot.add_cog(attr)
+    if callable(attr):
+        try:
+            bot.add_listener(attr)
+        except:
+            pass
 
 # run flask server to keep the bot running (needed for replit host)
 keep_alive()

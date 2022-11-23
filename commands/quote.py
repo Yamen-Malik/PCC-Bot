@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord import Embed
-from commands.decorators import command
+from utilities.decorators import command
 import requests
 
 
