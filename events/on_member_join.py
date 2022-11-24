@@ -8,14 +8,15 @@ import random
 
 @commands.Cog.listener()
 async def on_member_join(member):
-    if not db["welcome_new_members"]:
+    guild_db = db[member.guild.id]
+    if not guild_db["welcome_new_members"]:
         return
     for channel in member.guild.channels:
-        if channel.name == db["welcome_channel"]:
-            await channel.send(random.choice(db["welcome_messages"]).format(member.mention, member.guild.name))
+        if channel.name == guild_db["welcome_channel"]:
+            await channel.send(random.choice(guild_db["welcome_messages"]).format(member.mention, member.guild.name))
             styles = ButtonStyle
             view = create_menu(
-                db["new_member_roles"],
+                guild_db["new_member_roles"],
                 [choose_role],
                 [styles.primary, styles.success,
                  styles.danger, styles.gray]

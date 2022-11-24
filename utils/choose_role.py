@@ -9,13 +9,13 @@ async def choose_role(interaction: Interaction, button: Button) -> None:
 
     if hasattr(member, "roles"):
         for role in member.roles:
-            if role.name.lower() in map(lambda s: s.lower(), db["new_member_roles"]):
+            if role.name.lower() in map(lambda s: s.lower(), db[member.guild.id]["new_member_roles"]):
                 await member.remove_roles(role)
                 break
     
     for role in guild.roles:
         if role.name.lower() == chosen_role_name.lower():
             await member.add_roles(role)
-            await interaction.channel.send(f"{member.mention} your role now is {chosen_role_name}")
+            await interaction.response.send_message(f"{member.mention} your role now is {chosen_role_name}")
             return
     await interaction.channel.send(f'Failed to change role')

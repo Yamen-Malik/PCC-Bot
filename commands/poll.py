@@ -1,4 +1,4 @@
-from discord import Embed, PartialEmoji, utils
+from discord import Embed, PartialEmoji
 from discord.ext import commands
 from utils.decorators import command
 from constants import MAX_POLL_CHOICES, MAX_POLL_NAME_LENGTH
@@ -52,12 +52,10 @@ async def poll_auto(ctx, poll_name, *choices):
                         for i in range(len(names)*2)]
     await poll(ctx, poll_name, *extended_choices)
 
-# TODO
 
-
-@commands.command(name="poll_anon", help="create an anonymous poll")
+@commands.command(name="poll_anonymous", help="create an anonymous poll")
 @command
-async def poll_anon(ctx, description, *choices):
+async def poll_anonymous(ctx, description, *choices):
     names = choices
     if len(choices)//2 > MAX_POLL_CHOICES:
         await ctx.channel.send("Max poll choices exceeded!")
@@ -81,6 +79,6 @@ async def poll_anon(ctx, description, *choices):
 @commands.command(name="result", help="result of all polls")
 @command
 async def result(ctx):
-    await ctx.send(str(db["polls"]))
+    await ctx.send(str(db[ctx.guild.id]["polls"]))
 
-exported_commands = [poll, poll_auto, poll_anon, result]
+exported_commands = [poll, poll_auto, poll_anonymous, result]

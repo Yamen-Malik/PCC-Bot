@@ -11,7 +11,7 @@ from replit import db
 async def change_role(ctx):
     styles = ButtonStyle
     menu = create_menu(
-        db["new_member_roles"],
+        db[ctx.guild.id]["new_member_roles"],
         [choose_role],
         [styles.primary, styles.success, styles.danger, styles.gray]
     )
