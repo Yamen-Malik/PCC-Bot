@@ -18,7 +18,7 @@ def create_menu(labels: list[str], callback_handlers: list[Callable[[Interaction
         if button_styles != None and i < len(button_styles):
             current_style = button_styles[i]
         button = SuperButton(
-            label=labels[i % len(labels)],
+            label=labels[i],
             callback=callback_handlers[i % len(callback_handlers)],
             style=current_style
         )
