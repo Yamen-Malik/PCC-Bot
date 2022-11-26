@@ -30,6 +30,16 @@ async def validate_choices(ctx: commands.Context, choices: list[str]) -> bool:
     return True
 
 
+async def get_poll(ctx: commands.Context, poll_name: str) -> dict:
+    """
+        Returns the poll data from the database if it exists, otherwise sends an error message to the channel and returns None
+    """
+    poll = db[ctx.guild.id]["polls"].get(poll_name)
+    if not poll:
+        await ctx.send(f"{poll_name} poll is not found.")
+    return poll
+
+
 @commands.command(name="poll", help="create a poll")
 @command
 async def poll(ctx, poll_name, *choices):
@@ -89,7 +99,6 @@ async def poll_anonymous(ctx, poll_name, *choices):
         await interaction.response.defer()
 
     guild_db = db[ctx.guild.id]
-    guild_db["polls"] = guild_db.get("polls", {})
 
     if poll_name.lower() in map(lambda s: s.lower(), guild_db["polls"].keys()):
         await ctx.send("Poll already exists.")
@@ -100,7 +109,7 @@ async def poll_anonymous(ctx, poll_name, *choices):
         return
 
     view = create_menu(choices, [handle_votes])
-    
+
     embed = Embed(title=poll_name, color=Color.blue())
     embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar)
     embed.add_field(name="status", value="*Open*", inline=False)
@@ -118,11 +127,11 @@ async def poll_anonymous(ctx, poll_name, *choices):
 @commands.command(name="result", help="prints the result of the given poll (works only for anonymous poll)")
 @command
 async def result(ctx, poll_name):
-    if poll_name not in db[ctx.guild.id]["polls"]:
-        await ctx.send("No poll found with the given name.")
+    poll = await get_poll(ctx, poll_name)
+    if not poll:
         return
-    
-    votes = db[ctx.guild.id]["polls"][poll_name]["votes"]
+
+    votes = poll["votes"]
     sorted_keys = sorted(votes, key=lambda k: votes[k], reverse=True)
     result_str = "\n".join([f"{k}: {votes[k]}" for k in sorted_keys])
     embed = Embed(title=f"{poll_name} results",
@@ -133,16 +142,15 @@ async def result(ctx, poll_name):
 @commands.command(name="close", help="closes the given poll (works only for anonymous poll)")
 @command
 async def close(ctx, poll_name):
-    poll = db[ctx.guild.id]["polls"].get(poll_name, None)
+    poll = await get_poll(ctx, poll_name)
     if not poll:
-        await ctx.send(f"{poll_name} poll is not found.")
         return
 
     channel = await ctx.guild.fetch_channel(poll["channel_id"])
     message = await channel.fetch_message(poll["message_id"])
 
     embed = message.embeds[0]
-    embed.colour = Color.dark_red()
+    embed.color = Color.dark_red()
     embed.set_field_at(index=len(message.embeds)-1,
                        name="status", value="*Closed*", inline=False)
     await message.edit(view=None, embed=embed)

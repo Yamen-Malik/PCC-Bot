@@ -1,12 +1,12 @@
 from replit import db
-from constants import default_command_data
+from constants import DEFAULT_COMMAND_DATA
 
 command_names = []
 
 
 def get_command_data(guild_id, command: str) -> dict:
     commands = db[guild_id].get("commands", {})
-    commands[command] = commands.get(command, default_command_data)
+    commands[command] = commands.get(command, DEFAULT_COMMAND_DATA)
     db["commands"] = commands
     return commands[command]
 

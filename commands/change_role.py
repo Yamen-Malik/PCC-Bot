@@ -9,6 +9,9 @@ from replit import db
 @commands.command(name="change_role", help="Change your member role")
 @command
 async def change_role(ctx):
+    if db[ctx.guild.id]["new_member_roles"] < 2:
+        return
+
     styles = ButtonStyle
     menu = create_menu(
         db[ctx.guild.id]["new_member_roles"],
