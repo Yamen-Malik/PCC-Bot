@@ -4,7 +4,7 @@ from utils.decorators import command
 
 @commands.command(name="hello", help="Say hello to the bot")
 @command
-async def hello(ctx):
+async def hello(ctx: commands.Context):
     await ctx.send("Hi.")
 
 exported_commands = [hello]

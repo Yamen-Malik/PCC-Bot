@@ -1,4 +1,4 @@
-from discord import Embed, PartialEmoji, Color
+from discord import Embed, PartialEmoji, Color, Interaction, Button
 from discord.ext import commands
 from utils.decorators import command
 from constants import MAX_POLL_CHOICES, MAX_POLL_CHOICE_LENGTH
@@ -42,7 +42,8 @@ async def get_poll(ctx: commands.Context, poll_name: str) -> dict:
 
 @commands.command(name="poll", help="create a poll")
 @command
-async def poll(ctx, poll_name, *choices):
+async def poll(ctx: commands.Context, poll_name: str, *choices: tuple[str]):
+    # separate choice names from emoji (given that they are written in the format: name emoji ....)
     names = list(choices[::2])
     emojis = [PartialEmoji.from_str(emoji) for emoji in choices[1::2]]
     if len(choices) % 2 != 0:
@@ -53,30 +54,35 @@ async def poll(ctx, poll_name, *choices):
         return
     elif not (await validate_choices(ctx, names) and await validate_choices(ctx, emojis)):
         return
+    # this check should stay after the validate_choices call since validate_choices removes duplicates
     elif len(names) != len(emojis):
         await ctx.send("Duplicate emojis/choices are not allowed in polls")
         return
 
+    # create and send the poll message
     desc = '\n'.join(
         f"{name:<{MAX_POLL_CHOICE_LENGTH}} {emoji}" for name, emoji in zip(names, emojis))
     embed = Embed(title=poll_name, description=desc,  color=Color.blue())
     embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar)
     message = await ctx.send(embed=embed)
+    
+    # react to the sent poll message with all given emojis to make voting easier for members 
     for emoji in emojis:
         await message.add_reaction(str(emoji))
 
 
 @commands.command(name="poll_auto", help="create a poll")
 @command
-async def poll_auto(ctx, poll_name, *choices):
+async def poll_auto(ctx: commands.Context, poll_name: str, *choices: tuple[str]):
     choices = list(choices)
     if not await validate_choices(ctx, choices):
         return
 
-    emoji_a = '🇦'
+    # set an emoji to each choice name
+    first_emoji = '🇦'  # first choice emoji
     emojis = []
     for i in range(len(choices)):
-        emoji = chr(ord(emoji_a)+i)
+        emoji = chr(ord(first_emoji)+i)
         partial_emoji = PartialEmoji.from_str(emoji)
         emojis.append(str(partial_emoji))
     extended_choices = [[choices[i//2], emojis[i//2]][i % 2 == 1]
@@ -86,15 +92,19 @@ async def poll_auto(ctx, poll_name, *choices):
 
 @commands.command(name="poll_anonymous", help="create an anonymous poll")
 @command
-async def poll_anonymous(ctx, poll_name, *choices):
-    async def handle_votes(interaction, button):
+async def poll_anonymous(ctx: commands.Context, poll_name: str, *choices: tuple[str]):
+    async def handle_votes(interaction: Interaction, button: Button) -> None:
+        """
+        Handles the scores when a vote button is clicked
+        """
+        # allow members to vote only once
         poll = guild_db["polls"].get(poll_name, None)
-        user_id = interaction.user.id
-        if not poll or user_id in poll["voters"]:
+        member_id = interaction.user.id
+        if not poll or member_id in poll["voters"]:
             return
 
         choice = button.label
-        poll["voters"].append(user_id)
+        poll["voters"].append(member_id)
         poll["votes"][choice] += 1
         await interaction.response.defer()
 
@@ -108,6 +118,7 @@ async def poll_anonymous(ctx, poll_name, *choices):
     if not await validate_choices(ctx, choices):
         return
 
+    # create and send poll message
     view = create_menu(choices, [handle_votes])
 
     embed = Embed(title=poll_name, color=Color.blue())
@@ -116,6 +127,7 @@ async def poll_anonymous(ctx, poll_name, *choices):
 
     message = await ctx.send(embed=embed, view=view)
 
+    # add poll data to the database
     guild_db["polls"][poll_name] = {
         "voters": [],
         "votes": {choice: 0 for choice in choices},
@@ -126,11 +138,12 @@ async def poll_anonymous(ctx, poll_name, *choices):
 
 @commands.command(name="result", help="prints the result of the given poll (works only for anonymous poll)")
 @command
-async def result(ctx, poll_name):
+async def result(ctx: commands.Context, poll_name: str):
     poll = await get_poll(ctx, poll_name)
     if not poll:
         return
 
+    # create and send results message
     votes = poll["votes"]
     sorted_keys = sorted(votes, key=lambda k: votes[k], reverse=True)
     result_str = "\n".join([f"{k}: {votes[k]}" for k in sorted_keys])
@@ -141,7 +154,7 @@ async def result(ctx, poll_name):
 
 @commands.command(name="close", help="closes the given poll (works only for anonymous poll)")
 @command
-async def close(ctx, poll_name):
+async def close(ctx: commands.Context, poll_name: str):
     poll = await get_poll(ctx, poll_name)
     if not poll:
         return
@@ -149,12 +162,14 @@ async def close(ctx, poll_name):
     channel = await ctx.guild.fetch_channel(poll["channel_id"])
     message = await channel.fetch_message(poll["message_id"])
 
+    # change the status of the poll message to Closed and change the embed color to red
     embed = message.embeds[0]
     embed.color = Color.dark_red()
     embed.set_field_at(index=len(message.embeds)-1,
                        name="status", value="*Closed*", inline=False)
     await message.edit(view=None, embed=embed)
 
+    # send the poll result and confirm that the poll has been closed 
     await result(ctx, poll_name)
     del db[ctx.guild.id]["polls"][poll_name]
     await ctx.send(f"{poll_name} poll has been closed.")

@@ -4,7 +4,7 @@ from utils.decorators import command
 
 @commands.command(name="delete", help="Delete last n messages")
 @command
-async def delete(ctx, x):
+async def delete(ctx: commands.Context, x: int,):
     try:
         member_id = n = None
         if x.startswith("<"):

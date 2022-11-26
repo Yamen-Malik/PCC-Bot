@@ -5,7 +5,7 @@ from discord.ext import commands
 from keep_alive import keep_alive
 from constants import COMMAND_CHAR, TOKEN
 
-
+# initialize the bot
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True

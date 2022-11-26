@@ -8,15 +8,15 @@ from replit import db
 
 @commands.command(name="change_role", help="Change your member role")
 @command
-async def change_role(ctx):
+async def change_role(ctx: commands.Context):
     if db[ctx.guild.id]["new_member_roles"] < 2:
         return
 
-    styles = ButtonStyle
     menu = create_menu(
         db[ctx.guild.id]["new_member_roles"],
         [choose_role],
-        [styles.primary, styles.success, styles.danger, styles.gray]
+        [ButtonStyle.primary, ButtonStyle.success,
+            ButtonStyle.danger, ButtonStyle.gray]
     )
     await ctx.send("Choose major:", view=menu)
 

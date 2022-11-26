@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import ButtonStyle
+from discord import ButtonStyle, Member
 from utils.menu import create_menu
 from utils.choose_role import choose_role
 from replit import db
@@ -7,7 +7,7 @@ import random
 
 
 @commands.Cog.listener()
-async def on_member_join(member):
+async def on_member_join(member: Member):
     guild_db = db[member.guild.id]
     if not guild_db["welcome_new_members"]:
         return
