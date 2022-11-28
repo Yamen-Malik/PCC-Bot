@@ -9,7 +9,7 @@ from replit import db
 @commands.command(name="change_role", help="Change your member role")
 @command
 async def change_role(ctx: commands.Context):
-    if db[ctx.guild.id]["new_member_roles"] < 2:
+    if len(db[ctx.guild.id]["new_member_roles"]) < 2:
         return
 
     menu = create_menu(
