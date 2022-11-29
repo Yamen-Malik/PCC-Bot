@@ -18,6 +18,7 @@ DEFAULT_GUILD_DATA = {
     ],
     "welcome_new_members": True,
     "new_member_roles": [],
+    "delete_command_call_message": True,
     "commands": {
         "poll_anonymous": MANAGE_GUILD,
         "result":   MANAGE_GUILD,

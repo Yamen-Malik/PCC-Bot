@@ -48,16 +48,16 @@ async def poll(ctx: commands.Context, poll_name: str, *choices: tuple[str]):
     emojis = [PartialEmoji.from_str(emoji) for emoji in choices[1::2]]
     if len(choices) % 2 != 0:
         await ctx.send("Every choice should have an emoji!")
-        return
+        return False
     elif not all(emoji.is_unicode_emoji() or emoji.is_custom_emoji() for emoji in emojis):
         await ctx.send("Invalid emoji!")
-        return
+        return False
     elif not (await validate_choices(ctx, names) and await validate_choices(ctx, emojis)):
-        return
+        return False
     # this check should stay after the validate_choices call since validate_choices removes duplicates
     elif len(names) != len(emojis):
         await ctx.send("Duplicate emojis/choices are not allowed in polls")
-        return
+        return False
 
     # create and send the poll message
     desc = '\n'.join(
@@ -65,18 +65,19 @@ async def poll(ctx: commands.Context, poll_name: str, *choices: tuple[str]):
     embed = Embed(title=poll_name, description=desc,  color=Color.blue())
     embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar)
     message = await ctx.send(embed=embed)
-    
-    # react to the sent poll message with all given emojis to make voting easier for members 
+
+    # react to the sent poll message with all given emojis to make voting easier for members
     for emoji in emojis:
         await message.add_reaction(str(emoji))
+    return True
 
 
 @commands.command(name="poll_auto", help="create a poll")
 @command
-async def poll_auto(ctx: commands.Context, poll_name: str, *choices: tuple[str]):
+async def poll_auto(ctx: commands.Context, poll_name: str, *choices: tuple[str]) -> bool:
     choices = list(choices)
     if not await validate_choices(ctx, choices):
-        return
+        return False
 
     # set an emoji to each choice name
     first_emoji = '🇦'  # first choice emoji
@@ -87,12 +88,12 @@ async def poll_auto(ctx: commands.Context, poll_name: str, *choices: tuple[str])
         emojis.append(str(partial_emoji))
     extended_choices = [[choices[i//2], emojis[i//2]][i % 2 == 1]
                         for i in range(len(choices)*2)]
-    await poll(ctx, poll_name, *extended_choices)
+    return await poll(ctx, poll_name, *extended_choices)
 
 
 @commands.command(name="poll_anonymous", help="create an anonymous poll")
 @command
-async def poll_anonymous(ctx: commands.Context, poll_name: str, *choices: tuple[str]):
+async def poll_anonymous(ctx: commands.Context, poll_name: str, *choices: tuple[str]) -> bool:
     async def handle_votes(interaction: Interaction, button: Button) -> None:
         """
         Handles the scores when a vote button is clicked
@@ -112,11 +113,11 @@ async def poll_anonymous(ctx: commands.Context, poll_name: str, *choices: tuple[
 
     if poll_name.lower() in map(lambda s: s.lower(), guild_db["polls"].keys()):
         await ctx.send("Poll already exists.")
-        return
+        return False
 
     choices = list(choices)
     if not await validate_choices(ctx, choices):
-        return
+        return False
 
     # create and send poll message
     view = create_menu(choices, [handle_votes])
@@ -134,14 +135,15 @@ async def poll_anonymous(ctx: commands.Context, poll_name: str, *choices: tuple[
         "channel_id": message.channel.id,
         "message_id": message.id,
     }
+    return True
 
 
 @commands.command(name="result", help="prints the result of the given poll (works only for anonymous poll)")
 @command
-async def result(ctx: commands.Context, poll_name: str):
+async def result(ctx: commands.Context, poll_name: str) -> bool:
     poll = await get_poll(ctx, poll_name)
     if not poll:
-        return
+        return False
 
     # create and send results message
     votes = poll["votes"]
@@ -150,14 +152,15 @@ async def result(ctx: commands.Context, poll_name: str):
     embed = Embed(title=f"{poll_name} results",
                   description=result_str, color=Color.green())
     await ctx.send(embed=embed)
+    return True
 
 
 @commands.command(name="close", help="closes the given poll (works only for anonymous poll)")
 @command
-async def close(ctx: commands.Context, poll_name: str):
+async def close(ctx: commands.Context, poll_name: str) -> bool:
     poll = await get_poll(ctx, poll_name)
     if not poll:
-        return
+        return False
 
     channel = await ctx.guild.fetch_channel(poll["channel_id"])
     message = await channel.fetch_message(poll["message_id"])
@@ -169,10 +172,11 @@ async def close(ctx: commands.Context, poll_name: str):
                        name="status", value="*Closed*", inline=False)
     await message.edit(view=None, embed=embed)
 
-    # send the poll result and confirm that the poll has been closed 
+    # send the poll result and confirm that the poll has been closed
     await result(ctx, poll_name)
     del db[ctx.guild.id]["polls"][poll_name]
     await ctx.send(f"{poll_name} poll has been closed.")
+    return True
 
 
 exported_commands = [poll, poll_auto, poll_anonymous, result, close]

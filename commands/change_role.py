@@ -8,9 +8,9 @@ from replit import db
 
 @commands.command(name="change_role", help="Change your member role")
 @command
-async def change_role(ctx: commands.Context):
+async def change_role(ctx: commands.Context) -> bool:
     if len(db[ctx.guild.id]["new_member_roles"]) < 2:
-        return
+        return False
 
     menu = create_menu(
         db[ctx.guild.id]["new_member_roles"],
@@ -19,5 +19,6 @@ async def change_role(ctx: commands.Context):
             ButtonStyle.danger, ButtonStyle.gray]
     )
     await ctx.send("Choose major:", view=menu)
+    return True
 
 exported_commands = [change_role]
