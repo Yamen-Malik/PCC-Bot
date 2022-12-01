@@ -8,7 +8,7 @@ import random
 
 @commands.Cog.listener()
 async def on_member_join(member: Member):
-    guild_db = db[member.guild.id]
+    guild_db = db[str(member.guild.id)]
     if not guild_db["welcome_new_members"]:
         return
 

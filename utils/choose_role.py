@@ -2,6 +2,7 @@ from discord import Interaction
 from discord.ui import Button
 from replit import db
 
+
 async def choose_role(interaction: Interaction, button: Button) -> None:
     member = interaction.user
     guild = interaction.guild
@@ -9,10 +10,10 @@ async def choose_role(interaction: Interaction, button: Button) -> None:
 
     if hasattr(member, "roles"):
         for role in member.roles:
-            if role.name.lower() in map(lambda s: s.lower(), db[member.guild.id]["new_member_roles"]):
+            if role.name.lower() in map(lambda s: s.lower(), db[str(member.guild.id)]["new_member_roles"]):
                 await member.remove_roles(role)
                 break
-    
+
     for role in guild.roles:
         if role.name.lower() == chosen_role_name.lower():
             await member.add_roles(role)

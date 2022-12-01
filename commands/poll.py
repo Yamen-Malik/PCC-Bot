@@ -34,7 +34,7 @@ async def get_poll(ctx: commands.Context, poll_name: str) -> dict:
     """
         Returns the poll data from the database if it exists, otherwise sends an error message to the channel and returns None
     """
-    poll = db[ctx.guild.id]["polls"].get(poll_name)
+    poll = db[str(ctx.guild.id)]["polls"].get(poll_name)
     if not poll:
         await ctx.send(f"{poll_name} poll is not found.")
     return poll
@@ -99,7 +99,7 @@ async def poll_anonymous(ctx: commands.Context, poll_name: str, *choices: tuple[
         Handles the scores when a vote button is clicked
         """
         # allow members to vote only once
-        poll = guild_db["polls"].get(poll_name, None)
+        poll = await get_poll(ctx, poll_name)
         member_id = interaction.user.id
         if not poll or member_id in poll["voters"]:
             return
@@ -109,7 +109,7 @@ async def poll_anonymous(ctx: commands.Context, poll_name: str, *choices: tuple[
         poll["votes"][choice] += 1
         await interaction.response.defer()
 
-    guild_db = db[ctx.guild.id]
+    guild_db = db[str(ctx.guild.id)]
 
     if poll_name.lower() in map(lambda s: s.lower(), guild_db["polls"].keys()):
         await ctx.send("Poll already exists.")
@@ -174,7 +174,7 @@ async def close(ctx: commands.Context, poll_name: str) -> bool:
 
     # send the poll result and confirm that the poll has been closed
     await result(ctx, poll_name)
-    del db[ctx.guild.id]["polls"][poll_name]
+    del db[str(ctx.guild.id)]["polls"][poll_name]
     await ctx.send(f"{poll_name} poll has been closed.")
     return True
 
