@@ -1,4 +1,5 @@
 from os import environ
+from copy import deepcopy
 TOKEN = environ['PCC_TOKEN']
 COMMAND_CHAR = ">"
 MAX_POLL_CHOICES = 10
@@ -6,10 +7,10 @@ MAX_POLL_CHOICE_LENGTH = 40
 DEFAULT_COMMAND_DATA = {"active": True, "channels": [],
                         "is_blacklist": True, "permissions": []}
 
-MANAGE_GUILD = DEFAULT_COMMAND_DATA.copy()
+MANAGE_GUILD = deepcopy(DEFAULT_COMMAND_DATA)
 MANAGE_GUILD["permissions"].append("manage_guild")
 
-MANAGE_MESSAGES = DEFAULT_COMMAND_DATA.copy()
+MANAGE_MESSAGES = deepcopy(DEFAULT_COMMAND_DATA)
 MANAGE_MESSAGES["permissions"].append("manage_messages")
 
 DEFAULT_GUILD_DATA = {
