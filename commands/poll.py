@@ -48,25 +48,6 @@ async def get_poll(interaction: Interaction, poll_name: str) -> dict:
         await interaction.response.send_message(f"{poll_name} poll is not found.", ephemeral=True)
     return poll
 
-async def get_poll_result_embed(poll_name: str, poll_data: dict) -> Embed:
-    """Creates an Embed containing poll results
-
-    Args:
-        poll_name (str): name of the requested poll
-        poll_data (dict): data of the requested poll
-
-
-    Returns:
-        Embed: new Embed with the results
-    """
-
-    # create results embed
-    votes = poll_data["votes"]
-    sorted_keys = sorted(votes, key=lambda k: votes[k], reverse=True)
-    result_str = "\n".join([f"{k}: {votes[k]}" for k in sorted_keys])
-    embed = Embed(title=f"{poll_name} results",
-                  description=result_str, color=Color.green())
-    return embed
 
 
 @poll_group.command(name="reactions")
@@ -187,9 +168,15 @@ async def result(interaction: Interaction, poll_name: str) -> None:
         await interaction.response.send_message("You don't have permission to view results of this poll.", ephemeral=True)
         return
 
+    # load and format votes
+    votes = poll["votes"]
+    sorted_keys = sorted(votes, key=lambda k: votes[k], reverse=True)
+    result_str = "\n".join([f"{k}: {votes[k]}" for k in sorted_keys])
+    
     # create and send results message
-    results = await get_poll_result_embed(poll_name, poll)
-    await interaction.response.send_message(embed=results)
+    embed = Embed(title=f"{poll_name} results",
+                  description=result_str, color=Color.green())
+    await interaction.response.send_message(embed=embed)
 
 
 @poll_group.command(name="close")
@@ -218,10 +205,10 @@ async def close(interaction: Interaction, poll_name: str) -> None:
                        name="status", value="*Closed*", inline=False)
     await message.edit(view=None, embed=embed)
 
-    # send the poll result and confirm that the poll has been closed
-    results = await get_poll_result_embed(poll_name, poll)
-    await interaction.response.send_message(embed=results)
+    # send poll result
+    await result.callback(interaction, poll_name)
  
+    # delete poll data and confirm that the poll has been closed  
     del db[str(interaction.guild.id)]["polls"][poll_name]
     await interaction.followup.send(f"{poll_name} poll has been closed.")
 

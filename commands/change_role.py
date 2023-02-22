@@ -10,7 +10,7 @@ async def change_role(interaction: Interaction) -> None:
     """
     
     roles = db[str(interaction.guild.id)]["new_member_roles"]
-    if len(roles) < 1:
+    if len(roles) < 2:
         await interaction.response.send_message("No majors to choose from.", ephemeral=True)
 
     menu = create_menu(
