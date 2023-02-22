@@ -43,7 +43,7 @@ async def get_poll(interaction: Interaction, poll_name: str) -> dict:
         dict: poll data
     """
    
-    poll = db[str(interaction.guild.id)]["polls"].get(poll_name)
+    poll = db[str(interaction.guild.id)]["polls"].get(poll_name.lower())
     if not poll:
         await interaction.response.send_message(f"{poll_name} poll is not found.", ephemeral=True)
     return poll
@@ -122,7 +122,7 @@ async def poll_anonymous(interaction: Interaction, poll_name: str, options: str,
 
     guild_db = db[str(interaction.guild.id)]
 
-    if poll_name.lower() in map(lambda s: s.lower(), guild_db["polls"].keys()):
+    if poll_name.lower() in map(lambda s: s, guild_db["polls"].keys()):
         await interaction.response.send_message("Poll already exists.", ephemeral=True)
         return
 
@@ -141,7 +141,7 @@ async def poll_anonymous(interaction: Interaction, poll_name: str, options: str,
 
     # add poll data to the database
     message = await interaction.original_response()
-    guild_db["polls"][poll_name] = {
+    guild_db["polls"][poll_name.lower()] = {
         "voters": [],
         "votes": {option: 0 for option in options},
         "channel_id": interaction.channel.id,
@@ -149,6 +149,26 @@ async def poll_anonymous(interaction: Interaction, poll_name: str, options: str,
         "author_id": interaction.user.id,
         "public_results": public_results
     }
+
+
+@poll_group.command(name="list")
+async def list(interaction: Interaction) -> None:
+    """List all open polls (works only for anonymous polls)
+    """
+    
+    # load and format polls data in an embed
+    polls = db[str(interaction.guild.id)]["polls"]
+    embed = Embed(title="Open polls", color=Color.yellow())
+    bot = interaction.client
+    i = 1
+    # add an embed field for each poll and include the author and channel in that field
+    for name, data in polls.items():
+        user = bot.get_user(data["author_id"]).name
+        channel = bot.get_channel(data["channel_id"]).name
+        embed.add_field(name=f"{i}. {name.capitalize()}", value=f"Author: {user}\nChannel: {channel}", inline=False)
+        i+=1
+
+    await interaction.response.send_message(embed=embed)
 
 
 @poll_group.command(name="result")
