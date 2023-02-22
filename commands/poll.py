@@ -7,13 +7,13 @@ from replit import db
 poll_group = app_commands.Group(name="poll", description="Create a poll for members to vote on")
 
 async def validate_options(interaction: Interaction, options: list[str]) -> bool:
-    """Validates the given option s and sends an error message to the channel if option s are not valid
+    """Validates the given options and sends an error message to the channel if options are not valid
 
     Args:
-        option s (list[str]): list of option s to validate
+        options (list[str]): list of options to validate
 
     Returns:
-        bool:True if option s are valid, False otherwise
+        bool:True if options are valid, False otherwise
     """
 
     for i in range(len(options)-1, -1, -1):
@@ -22,10 +22,10 @@ async def validate_options(interaction: Interaction, options: list[str]) -> bool
             options.pop(j)
 
     if len(options) > MAX_POLL_OPTIONS:
-        await interaction.response.send_message(f"Poll must have at most {MAX_POLL_OPTIONS} option s!", ephemeral=True)
+        await interaction.response.send_message(f"Poll must have at most {MAX_POLL_OPTIONS} options!", ephemeral=True)
         return False
     elif len(options) < 2:
-        await interaction.response.send_message("Poll must have at least 2 option s!", ephemeral=True)
+        await interaction.response.send_message("Poll must have at least 2 options!", ephemeral=True)
         return False
     elif type(options[0]) == str and not all(len(option) <= MAX_POLL_OPTION_LENGTH for option in options):
         await interaction.response.send_message(f"Option name length must be at most {MAX_POLL_OPTIONS} characters!", ephemeral=True)
@@ -164,7 +164,9 @@ async def poll_anonymous(interaction: Interaction, poll_name: str, options: str,
         "voters": [],
         "votes": {option: 0 for option in options},
         "channel_id": interaction.channel.id,
-        "message_id": message.id
+        "message_id": message.id,
+        "author_id": interaction.user.id,
+        "public_results": public_results
     }
 
 
@@ -180,6 +182,11 @@ async def result(interaction: Interaction, poll_name: str) -> None:
     if not poll:
         return
     
+    # Only send the results if they are public or if the request is from the author or an admin
+    if not poll["public_results"] and poll["author_id"] != interaction.user.id and not interaction.user.guild_permissions.manage_messages:
+        await interaction.response.send_message("You don't have permission to view results of this poll.", ephemeral=True)
+        return
+
     # create and send results message
     results = await get_poll_result_embed(poll_name, poll)
     await interaction.response.send_message(embed=results)
@@ -197,6 +204,10 @@ async def close(interaction: Interaction, poll_name: str) -> None:
     if not poll:
         return
 
+    # Only allow author and admins to close the poll
+    if poll["author_id"] != interaction.user.id and not interaction.user.guild_permissions.manage_messages:
+        await interaction.response.send_message("You don't have permission to close polls that you don't own.", ephemeral=True)
+        return
     channel = await interaction.guild.fetch_channel(poll["channel_id"])
     message = await channel.fetch_message(poll["message_id"])
 
