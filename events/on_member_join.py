@@ -3,6 +3,7 @@ from discord import ButtonStyle, Member
 from utils.menu import create_menu
 from utils.choose_role import choose_role
 from replit import db
+from constants import USER_MENTION, SERVER_MENTION
 import random
 
 
@@ -22,7 +23,10 @@ async def on_member_join(member: Member):
         print("welcome channel is not found")
         return
 
-    await channel.send(random.choice(guild_db["welcome_messages"]).format(member.mention, member.guild.name))
+    message = random.choice(guild_db["welcome_messages"])
+    message = message.replace(USER_MENTION, member.mention)
+    message = message.replace(SERVER_MENTION, member.guild.name)
+    await channel.send(message)
 
     if len(guild_db["new_member_roles"]) > 1:
         view = create_menu(
