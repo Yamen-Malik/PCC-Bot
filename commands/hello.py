@@ -1,11 +1,10 @@
-from discord.ext import commands
-from utils.decorators import command
+from discord import app_commands, Interaction
 
+@app_commands.command(name="hello")
+async def hello(interaction: Interaction) -> None:
+    """Say hello to the bot
+    """
 
-@commands.command(name="hello", help="Say hello to the bot")
-@command
-async def hello(ctx: commands.Context) -> bool:
-    await ctx.send(f"Hi {ctx.author.mention}.")
-    return True
+    await interaction.response.send_message(f"Hi {interaction.user.mention}.", ephemeral=True)
 
 exported_commands = [hello]

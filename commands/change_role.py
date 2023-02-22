@@ -1,17 +1,17 @@
-from discord.ext import commands
-from discord import ButtonStyle
+from discord import ButtonStyle, app_commands, Interaction
 from utils.choose_role import choose_role
-from utils.decorators import command
 from utils.menu import create_menu
 from replit import db
 
 
-@commands.command(name="change_role", help="Change your member role")
-@command
-async def change_role(ctx: commands.Context) -> bool:
-    roles = db[str(ctx.guild.id)]["new_member_roles"]
-    if len(roles) < 2:
-        return False
+@app_commands.command(name="change_role")
+async def change_role(interaction: Interaction) -> None:
+    """Change your member role to your academic major
+    """
+    
+    roles = db[str(interaction.guild.id)]["new_member_roles"]
+    if len(roles) < 1:
+        await interaction.response.send_message("No majors to choose from.", ephemeral=True)
 
     menu = create_menu(
         roles,
@@ -19,7 +19,6 @@ async def change_role(ctx: commands.Context) -> bool:
         [ButtonStyle.primary, ButtonStyle.success,
             ButtonStyle.danger, ButtonStyle.gray]
     )
-    await ctx.send("Choose major:", view=menu)
-    return True
+    await interaction.response.send_message("Choose major:", view=menu, ephemeral=True)
 
 exported_commands = [change_role]

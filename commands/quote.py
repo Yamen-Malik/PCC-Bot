@@ -1,18 +1,21 @@
-from discord.ext import commands
-from discord import Embed, Color
-from utils.decorators import command
+from discord import app_commands, Interaction, Embed, Color
 import requests
 
 
-@commands.command(name="quote", help="Returns a programming related quote by it's id, if id isn't provided return random quote")
-@command
-async def quote(ctx: commands.Context, id: str = "random") -> bool:
+@app_commands.command(name="quote")
+async def quote(interaction: Interaction, id: str = "random") -> None:
+    """Send a programming related quote by it's id, if id isn't provided return random quote
+
+    Args:
+        id (str, optional): id of the requested quote. Defaults to random
+    """
+
     try:
         # send GET request to programming quotes api
         content = requests.get(
             f"https://programming-quotes-api.herokuapp.com/Quotes/{id}")
         if content.status_code == 404:
-            await ctx.send("Invalid quote id")
+            await interaction.response.send_message("Invalid quote id", ephemeral=True)
             return False
         elif content.status_code != 200:
             raise Exception
@@ -21,10 +24,10 @@ async def quote(ctx: commands.Context, id: str = "random") -> bool:
         content = content.json()
         quote = Embed(
             title=content["author"], description=content["en"]+"\n\n"+content['id'], color=Color.gold())
-        await ctx.send(embed=quote)
+        await interaction.response.send_message(embed=quote)
         return True
     except:
-        await ctx.send("Error while requesting quote")
+        await interaction.response.send_message("Error while requesting quote", ephemeral=True)
         return False
 
 exported_commands = [quote]

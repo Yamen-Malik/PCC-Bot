@@ -11,15 +11,24 @@ intents.message_content = True
 intents.members = True
 bot = commands.Bot(
     intents=intents, command_prefix=COMMAND_CHAR, case_insensitive=True)
+tree = bot.tree
+
+
+@bot.event
+async def on_ready():
+    await tree.sync()
+    print("Synced with all guilds")
+    print("Running")
 
 
 # add all the commands to current instance of the bot
 for command in bot_commands:
-    bot.add_command(command)
+    tree.add_command(command)
 
 # add all the events to current instance of the bot
 for event in bot_events:
     bot.add_listener(event)
+
 
 
 # run flask server to keep the bot running (needed for replit host)

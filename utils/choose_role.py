@@ -17,6 +17,6 @@ async def choose_role(interaction: Interaction, button: Button) -> None:
     for role in guild.roles:
         if role.name.lower() == chosen_role_name.lower():
             await member.add_roles(role)
-            await interaction.response.send_message(f"{member.mention} your role now is {chosen_role_name}")
+            await interaction.response.send_message(f"{member.mention} your role now is {chosen_role_name}", ephemeral=True)
             return
-    await interaction.channel.send(f'Failed to change role')
+    await interaction.response.send_message("Failed to change role", ephemeral=True)

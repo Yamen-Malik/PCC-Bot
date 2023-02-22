@@ -1,24 +1,22 @@
-from discord.ext import commands
-from utils.decorators import command
+from discord import app_commands, Interaction
 
 
-@commands.command(name="delete", help="Delete last n messages")
-@command
-async def delete(ctx: commands.Context, x: int,) -> bool:
+@app_commands.command(name="delete")
+@app_commands.checks.has_permissions(manage_messages=True)
+async def delete(interaction: Interaction, n: int,) -> None:
+    """Delete last n messages in this channel
+
+    Args:
+        n (int): number of messages to delete
+    """
+    
     try:
-        member_id = n = None
-        if x.startswith("<"):
-            member_id = int(x[2:-1])
-        else:
-            n = int(x)
-
-        if member_id:
-            await ctx.channel.purge(check=lambda m: m.author.id == member_id)
-        else:
-            await ctx.channel.purge(limit=n+1)
-        return True
+        assert type(n) == int
+        await interaction.response.send_message(f"Deleting {n} message{'s'*(n>1)}", ephemeral=True)
+        await interaction.channel.purge(limit=n)
+    except AssertionError:
+        await interaction.response.send_message("Invalid delete argument.", ephemeral=True)
     except:
-        print("Invalid delete argument")
-        return False
+        await interaction.response.send_message("Error occurred while deleting the messages", ephemeral=True)
 
 exported_commands = [delete]
