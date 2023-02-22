@@ -229,7 +229,7 @@ async def close(interaction: Interaction, poll_name: str) -> None:
     await result.callback(interaction, poll_name)
  
     # delete poll data and confirm that the poll has been closed  
-    del db[str(interaction.guild.id)]["polls"][poll_name]
+    del db[str(interaction.guild.id)]["polls"][poll_name.lower()]
     await interaction.followup.send(f"{poll_name} poll has been closed.")
 
 

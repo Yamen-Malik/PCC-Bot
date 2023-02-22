@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 from keep_alive import keep_alive
 from constants import COMMAND_CHAR, TOKEN
+from error_handler import on_command_error
 
 # initialize the bot
 intents = discord.Intents.default()
@@ -12,6 +13,9 @@ intents.members = True
 bot = commands.Bot(
     intents=intents, command_prefix=COMMAND_CHAR, case_insensitive=True)
 tree = bot.tree
+
+# set default command handler
+tree.on_error = on_command_error
 
 
 @bot.event
@@ -28,7 +32,6 @@ for command in bot_commands:
 # add all the events to current instance of the bot
 for event in bot_events:
     bot.add_listener(event)
-
 
 
 # run flask server to keep the bot running (needed for replit host)

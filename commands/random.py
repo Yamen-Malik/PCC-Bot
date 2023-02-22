@@ -69,6 +69,7 @@ async def random_choice(interaction: Interaction, values:str) -> None:
 
 
 @random_group.command(name="user")
+@app_commands.checks.has_permissions(mention_everyone=True)
 async def random_user(interaction: Interaction, server_wide:bool=False) -> None:
     """Mentions a random member from the channel or from the whole server if server_wide is true
 
