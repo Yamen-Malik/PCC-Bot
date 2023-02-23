@@ -6,6 +6,9 @@ MAX_POLL_OPTION_LENGTH = 40
 DEFAULT_OPTION_EMOJIS = "🇦 🇧 🇨 🇩 🇪 🇫 🇬 🇭 🇮 🇯"
 USER_MENTION = "$USER"
 SERVER_MENTION = "$SERVER"
+LOGS_FORMAT = "%(asctime)s | %(levelname)s | %(name)s: %(message)s"
+LOGS_FILE = "logs.log"
+
 
 DEFAULT_GUILD_DATA = {
     "welcome_messages": [
