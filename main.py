@@ -1,13 +1,13 @@
-from events.all_events import bot_events
-from commands.all_commands import bot_commands
-import discord
+from discord import app_commands, Intents
 from discord.ext import commands
-from keep_alive import keep_alive
-from constants import COMMAND_CHAR, TOKEN
 from error_handler import on_command_error
+from commands.all_commands import bot_commands
+from events.all_events import bot_events
+from constants import COMMAND_CHAR, TOKEN
+from keep_alive import keep_alive
 
 # initialize the bot
-intents = discord.Intents.default()
+intents = Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.Bot(
@@ -18,16 +18,12 @@ tree = bot.tree
 tree.on_error = on_command_error
 
 
-@bot.event
-async def on_ready():
-    await tree.sync()
-    print("Synced with all guilds")
-    print("Running")
-
-
 # add all the commands to current instance of the bot
 for command in bot_commands:
-    tree.add_command(command)
+    if isinstance(command, (app_commands.Command, app_commands.Group)):
+        tree.add_command(command)
+    elif isinstance(command, (commands.Command, commands.Group)):
+        bot.add_command(command)
 
 # add all the events to current instance of the bot
 for event in bot_events:
