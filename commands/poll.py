@@ -1,8 +1,10 @@
-from discord import app_commands, Embed, PartialEmoji, Color, Interaction, Button
+from discord import app_commands, Embed, PartialEmoji, Color, Interaction, Button, AllowedMentions
 from discord.ext.commands import Bot
 from constants import MAX_POLL_OPTIONS, MAX_POLL_OPTION_LENGTH, DEFAULT_OPTION_EMOJIS
 from utils.menu import create_menu
 from replit import db
+from typing import Literal
+from emoji import is_emoji
 
 @app_commands.guild_only()
 class Poll(app_commands.Group):
@@ -33,7 +35,7 @@ class Poll(app_commands.Group):
             await interaction.response.send_message(f"Poll must have at most {MAX_POLL_OPTIONS} options!", ephemeral=True)
             return False
         elif len(options) < 2:
-            await interaction.response.send_message("Poll must have at least 2 options!", ephemeral=True)
+            await interaction.response.send_message("Poll must have at least unique 2 options!", ephemeral=True)
             return False
         elif type(options[0]) == str and not all(len(option) <= MAX_POLL_OPTION_LENGTH for option in options):
             await interaction.response.send_message(f"Option name length must be at most {MAX_POLL_OPTIONS} characters!", ephemeral=True)
@@ -57,23 +59,65 @@ class Poll(app_commands.Group):
         return poll
 
 
+    async def handle_anonymous_votes(self, interaction: Interaction, button: Button) -> None:
+        """Handles the scores when a vote button is clicked
+
+        Args:
+            button (Button): clicked button
+        """
+
+        # get poll data
+        poll_name = interaction.message.embeds[0].title
+        poll = await self.get_poll(interaction, poll_name)
+        
+        # check if poll data is available and allow members to vote only once
+        member_id = interaction.user.id
+        if not poll:
+            await interaction.response.send_message("The poll you trying to vote on is no longer available!", ephemeral=True)
+            return
+        elif member_id in poll["voters"]:
+            await interaction.response.send_message("You've already voted on this poll!", ephemeral=True)
+            return
+
+        option = button.label
+        poll["voters"].append(member_id)
+        poll["votes"][option] += 1
+        await interaction.response.defer()
+
+
+
 
     @app_commands.command(name="reactions")
-    async def poll_reactions(self, interaction: Interaction, poll_name: str, options: str, emojis: str=DEFAULT_OPTION_EMOJIS) -> None:
+    async def poll_reactions(self, interaction: Interaction, poll_name: str, options: str, emojis: str=DEFAULT_OPTION_EMOJIS,
+                             mention: Literal["everyone", "here"] = "") -> None:
         """Create a poll where message reactions are used to vote
 
         Args:
             poll_name (str): name of the new poll
             options (str): list of options separated by a comma (,)
             emojis (str): list of emojis to use for voting separated by white space. Defaults to a list of alphabet emojis
+            mention (str): Mention type. Defaults to None
         """
         
-        # separate option names from emoji (given that they are written in the format: name emoji ....)
         options = [s.strip() for s in options.split(',')]
-        # Cut down default emojis to the number of options 
+        
+        # cut down default emojis to the number of options 
         if emojis == DEFAULT_OPTION_EMOJIS:
             emojis = emojis[:len(options)*2]
-        emojis = [PartialEmoji.from_str(emoji) for emoji in emojis.split()]
+        
+        # only allow unicode or guild emojis
+        emojis = emojis.split()
+        for i in range(len(emojis)):
+            emoji = emojis[i]
+            partial_emoji = PartialEmoji.from_str(emoji)
+            if not is_emoji(emoji) and partial_emoji not in interaction.guild.emojis:
+                await interaction.response.send_message(
+                    "Invalid emoji! Please only use emojis that are available on this server.", ephemeral=True)
+                return
+
+            emojis[i] = partial_emoji
+        
+        # validate options and emojis
         if len(options) != len(emojis):
             await interaction.response.send_message("Every option should have an emoji!", ephemeral=True)
             return
@@ -87,47 +131,42 @@ class Poll(app_commands.Group):
             await interaction.response.send_message("Duplicate emojis/options are not allowed in polls", ephemeral=True)
             return
 
-        # create and send the poll message
+        # create poll embed
         desc = '\n'.join(
             f"{option:<{MAX_POLL_OPTION_LENGTH}} {emoji}" for option, emoji in zip(options, emojis))
         embed = Embed(title=poll_name, description=desc,  color=Color.blue())
         embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar)
-        await interaction.response.send_message(embed=embed)
-        message = await interaction.original_response()
+        
+        # add mention only if user has permission to mention everyone
+        if mention:
+            if not interaction.user.guild_permissions.mention_everyone:
+                await interaction.response.send_message(
+                    "You don't have permission to mention members!\nPlease try again without mention.", ephemeral=True)
+                return
+            mention = f"@{mention}"
+        
+        # send message
+        allowed_mentions = AllowedMentions(everyone=True)
+        await interaction.response.send_message(content=mention, allowed_mentions=allowed_mentions, embed=embed)
+        
         # react to the sent poll message with all given emojis to make voting easier for members
+        message = await interaction.original_response()
         for emoji in emojis:
             await message.add_reaction(str(emoji))
 
 
     @app_commands.command(name="anonymous")
-    async def poll_anonymous(self, interaction: Interaction, poll_name: str, options: str, public_results: bool=True) -> None:
+    async def poll_anonymous(self, interaction: Interaction, poll_name: str, options: str, public_results: bool=True, 
+                             mention: Literal["everyone", "here"] = "") -> None:
         """Create an anonymous poll using view and buttons
 
         Args:
             poll_name (str): name of the new poll
             options (str): list of options separated by a comma (,)
             public_results (bool): Allow members to view results while the poll is still open. Defaults to True
+            mention (str): Mention type. Defaults to None
         """
         
-        async def handle_votes(interaction: Interaction, button: Button) -> None:
-            """Handles the scores when a vote button is clicked
-
-            Args:
-                button (Button): clicked button
-            """
-
-            # allow members to vote only once
-            poll = await self.get_poll(interaction, poll_name)
-            member_id = interaction.user.id
-            if not poll or member_id in poll["voters"]:
-                return
-
-            option = button.label
-            poll["voters"].append(member_id)
-            poll["votes"][option] += 1
-            await interaction.response.defer()
-
-
         guild_db = db[str(interaction.guild.id)]
 
         if poll_name.lower() in map(lambda s: s, guild_db["polls"].keys()):
@@ -138,14 +177,24 @@ class Poll(app_commands.Group):
         if not await self.validate_options(interaction, options):
             return
 
-        # create and send poll message
-        view = create_menu(options, [handle_votes])
+        # create poll view and embed
+        view = create_menu(options, [self.handle_anonymous_votes])
 
         embed = Embed(title=poll_name, color=Color.blue())
         embed.set_author(name=interaction.user.display_name, icon_url=interaction.user.avatar)
         embed.add_field(name="status", value="*Open*", inline=False)
 
-        await interaction.response.send_message(embed=embed, view=view)
+        # add mention only if user has permission to mention everyone
+        if mention:
+            if not interaction.user.guild_permissions.mention_everyone:
+                await interaction.response.send_message(
+                    "You don't have permission to mention members!\nPlease try again without mention.", ephemeral=True)
+                return
+            mention = f"@{mention}"
+       
+        # send message
+        allowed_mentions = AllowedMentions(everyone = True)
+        await interaction.response.send_message(content=mention, allowed_mentions=allowed_mentions, embed=embed, view=view)
 
         # add poll data to the database
         message = await interaction.original_response()
@@ -160,6 +209,7 @@ class Poll(app_commands.Group):
 
 
     @app_commands.command(name="list")
+    @app_commands.checks.has_permissions(administrator=True)
     async def list(self, interaction: Interaction) -> None:
         """List all open polls (works only for anonymous polls)
         """
