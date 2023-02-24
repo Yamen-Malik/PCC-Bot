@@ -1,11 +1,12 @@
-from discord import app_commands, Intents
+from discord import Intents
 from discord.ext import commands
 from discord.utils import setup_logging
 from constants import COMMAND_CHAR, TOKEN, LOGS_FORMAT, LOGS_FILE
 from error_handler import on_command_error
-from commands.all_commands import bot_commands
-from events.all_events import bot_events
+from commands.bot_commands import load_commands
+from events.bot_events import load_events
 from keep_alive import keep_alive
+import asyncio
 import logging
 
 
@@ -14,7 +15,7 @@ intents = Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.Bot(
-    intents=intents, command_prefix=COMMAND_CHAR, case_insensitive=True)
+    intents=intents, command_prefix=COMMAND_CHAR, case_insensitive=True, help_command=None)
 tree = bot.tree
 
 # set default command handler
@@ -37,18 +38,11 @@ logging.getLogger().addHandler(file_handler)
 
 # add all the commands to current instance of the bot
 logger.info("Adding commands")
-for command in bot_commands:
-    if isinstance(command, (app_commands.Command, app_commands.Group)):
-        tree.add_command(command)
-    elif isinstance(command, (commands.Command, commands.Group)):
-        bot.add_command(command)
-    else:
-        logger.error(f"Invalid command type: {type(command)}")
+asyncio.run(load_commands(bot))
 
 # add all the events to current instance of the bot
 logger.info("Adding events")
-for event in bot_events:
-    bot.add_listener(event)
+asyncio.run(load_events(bot))
 
 
 # run flask server to keep the bot running (needed for replit host)
@@ -57,6 +51,8 @@ try:
     bot.run(TOKEN, log_handler=None)
 except KeyboardInterrupt:
     bot.close()
+except Exception as e:
+    logger.error(e)
 finally:
     logger.info("Bot terminated successfully")
     exit(0)

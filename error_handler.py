@@ -2,7 +2,7 @@ from discord import Interaction
 from discord.app_commands import AppCommandError, MissingPermissions, \
     BotMissingPermissions, CommandNotFound, CommandLimitReached, \
     NoPrivateMessage, MissingRole, CommandOnCooldown
-
+from logging import getLogger
 
 async def on_command_error(interaction: Interaction, error: AppCommandError):
     # ignore error if it's handled by local handler
@@ -29,6 +29,7 @@ async def on_command_error(interaction: Interaction, error: AppCommandError):
     elif isinstance(error, NoPrivateMessage):
         message = "The requested command is not available in private messages!"
     else:
+        getLogger(__name__).warning(error)
         message = "Unknown Error occurred!"
 
     await interaction.response.send_message(message, ephemeral=True)
