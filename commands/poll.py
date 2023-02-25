@@ -284,7 +284,7 @@ class Poll(app_commands.Group):
         await message.edit(view=None, embed=embed)
 
         # send poll result
-        await self.result.callback(interaction, poll_name)
+        await self.result.callback(self, interaction, poll_name)
     
         # delete poll data and confirm that the poll has been closed  
         del db[str(interaction.guild.id)]["polls"][poll_name.lower()]
