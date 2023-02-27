@@ -1,9 +1,12 @@
+from copy import deepcopy
+from logging import getLogger
+
 from discord.ext.commands import Cog, Bot
 from discord import Guild
 from replit import db
+
 from constants import DEFAULT_GUILD_DATA
-from copy import deepcopy
-from logging import getLogger
+
 
 class OnGuildJoin(Cog):
     def __init__(self, bot: Bot) -> None:

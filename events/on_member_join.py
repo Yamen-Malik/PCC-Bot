@@ -1,11 +1,13 @@
-from discord import ButtonStyle, Member
-from discord.ext.commands import Cog, Bot
-from utils.menu import create_menu
-from utils.choose_role import choose_role
-from replit import db
-from constants import USER_MENTION, SERVER_MENTION
 import random
 from logging import getLogger
+
+from discord import ButtonStyle, Member
+from discord.ext.commands import Cog, Bot
+from replit import db
+
+from constants import USER_MENTION, SERVER_MENTION
+from utils.choose_role import choose_role
+from utils.menu import create_menu
 
 
 class OnMemberJoin(Cog):
@@ -13,12 +15,16 @@ class OnMemberJoin(Cog):
         self.bot = bot
         self.logger = getLogger(__name__)
 
-
     @Cog.listener()
     async def on_member_join(self, member: Member):
         guild = member.guild
-        self.logger.debug(f"New member joined. Member({member.name}, {member.id}), Guild({guild.name}, {guild.id})")
-        
+        self.logger.debug(
+            (
+                "New member joined. "
+                f"Member({member.name}, {member.id}), Guild({guild.name}, {guild.id})"
+            )
+        )
+
         guild_db = db[str(guild.id)]
         if not guild_db["welcome_new_members"]:
             return
@@ -43,10 +49,14 @@ class OnMemberJoin(Cog):
             view = create_menu(
                 guild_db["new_member_roles"],
                 [choose_role],
-                [ButtonStyle.primary, ButtonStyle.success,
-                ButtonStyle.danger, ButtonStyle.gray]
+                [
+                    ButtonStyle.primary,
+                    ButtonStyle.success,
+                    ButtonStyle.danger,
+                    ButtonStyle.gray,
+                ],
             )
-            await channel.send(f"Select your major", view=view)
+            await channel.send("Select your major", view=view)
         elif len(guild_db["new_member_roles"]) == 1:
             role_name = guild_db["new_member_roles"][0].lower()
             for role in guild.roles:
