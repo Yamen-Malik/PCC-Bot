@@ -1,7 +1,7 @@
 from os import environ
 
 
-TOKEN = environ["PCC_TOKEN"]
+TOKEN = environ["BOT_TOKEN"]
 COMMAND_CHAR = ">"
 MAX_POLL_OPTIONS = 10
 MAX_POLL_OPTION_LENGTH = 40
