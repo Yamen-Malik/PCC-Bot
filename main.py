@@ -1,13 +1,16 @@
+import asyncio
+import logging
+import sys
+
 from discord import Intents
 from discord.ext import commands
 from discord.utils import setup_logging
+
 from constants import COMMAND_CHAR, TOKEN, LOGS_FORMAT, LOGS_FILE
 from error_handler import on_command_error
 from commands.bot_commands import load_commands
 from events.bot_events import load_events
 from keep_alive import keep_alive
-import asyncio
-import logging
 
 
 # initialize the bot
@@ -15,7 +18,11 @@ intents = Intents.default()
 intents.message_content = True
 intents.members = True
 bot = commands.Bot(
-    intents=intents, command_prefix=COMMAND_CHAR, case_insensitive=True, help_command=None)
+    intents=intents,
+    command_prefix=COMMAND_CHAR,
+    case_insensitive=True,
+    help_command=None,
+)
 tree = bot.tree
 
 # set default command handler
@@ -51,8 +58,8 @@ try:
     bot.run(TOKEN, log_handler=None)
 except KeyboardInterrupt:
     bot.close()
-except Exception as e:
-    logger.error(e)
+except Exception as error:
+    logger.error(error)
 finally:
     logger.info("Bot terminated successfully")
-    exit(0)
+    sys.exit(0)

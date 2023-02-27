@@ -1,9 +1,14 @@
-from discord import ButtonStyle, Interaction
-from discord.ui import Button, View
 from collections.abc import Callable
 
+from discord import ButtonStyle, Interaction
+from discord.ui import Button, View
 
-def create_menu(labels: list[str], callback_handlers: list[Callable[[Interaction, Button], None]], button_styles: list[ButtonStyle] = None) -> View:
+
+def create_menu(
+    labels: list[str],
+    callback_handlers: list[Callable[[Interaction, Button], None]],
+    button_styles: list[ButtonStyle] = None,
+) -> View:
     class SuperButton(Button):
         def __init__(self, label, callback, style=ButtonStyle.grey):
             super().__init__(label=label, style=style)
@@ -14,13 +19,13 @@ def create_menu(labels: list[str], callback_handlers: list[Callable[[Interaction
 
     view = View()
     current_style = ButtonStyle.gray
-    for i in range(len(labels)):
-        if button_styles != None and i < len(button_styles):
+    for i, label in enumerate(labels):
+        if button_styles is not None and i < len(button_styles):
             current_style = button_styles[i]
         button = SuperButton(
-            label=labels[i],
+            label=label,
             callback=callback_handlers[i % len(callback_handlers)],
-            style=current_style
+            style=current_style,
         )
         view.add_item(button)
     return view

@@ -1,31 +1,39 @@
 from discord import ButtonStyle, app_commands, Interaction
 from discord.ext.commands import Cog, Bot
-from utils.choose_role import choose_role
-from utils.menu import create_menu
 from replit import db
 
-class ChangeRole(Cog):
-    def __init__(self, bot:Bot) -> None:
-        self.bot = bot
+from utils.choose_role import choose_role
+from utils.menu import create_menu
 
+
+class ChangeRole(Cog):
+    def __init__(self, bot: Bot) -> None:
+        self.bot = bot
 
     @app_commands.command(name="change_role")
     @app_commands.guild_only()
     async def change_role(self, interaction: Interaction) -> None:
-        """Change your member role to your academic major
-        """
-        
+        """Change your member role to your academic major"""
+
         roles = db[str(interaction.guild.id)]["new_member_roles"]
         if len(roles) < 2:
-            await interaction.response.send_message("No majors to choose from.", ephemeral=True)
+            await interaction.response.send_message(
+                "No majors to choose from.", ephemeral=True
+            )
 
         menu = create_menu(
             roles,
             [choose_role],
-            [ButtonStyle.primary, ButtonStyle.success,
-                ButtonStyle.danger, ButtonStyle.gray]
+            [
+                ButtonStyle.primary,
+                ButtonStyle.success,
+                ButtonStyle.danger,
+                ButtonStyle.gray,
+            ],
         )
-        await interaction.response.send_message("Choose major:", view=menu, ephemeral=True)
+        await interaction.response.send_message(
+            "Choose major:", view=menu, ephemeral=True
+        )
 
 
 async def setup(bot: Bot) -> None:

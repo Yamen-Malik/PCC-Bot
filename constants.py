@@ -1,4 +1,6 @@
 from os import environ
+
+
 TOKEN = environ["PCC_TOKEN"]
 COMMAND_CHAR = ">"
 MAX_POLL_OPTIONS = 10
@@ -17,5 +19,5 @@ DEFAULT_GUILD_DATA = {
     "welcome_new_members": True,
     "welcome_channel": "welcome",
     "new_member_roles": [],
-    "polls": {}
+    "polls": {},
 }

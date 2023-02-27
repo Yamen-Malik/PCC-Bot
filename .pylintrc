@@ -1,0 +1,15 @@
+[MESSAGES CONTROL]
+
+disable=
+    missing-module-docstring,
+    logging-fstring-interpolation,
+    too-many-arguments,
+    arguments-differ
+
+[BASIC]
+
+good-names=i,j,ch,_
+
+[TYPECHECK]
+
+ignored-modules=replit
