@@ -8,8 +8,7 @@ from discord.utils import setup_logging
 
 from constants import COMMAND_CHAR, TOKEN, LOGS_FORMAT, LOGS_FILE
 from error_handler import on_command_error
-from commands.bot_commands import load_commands
-from events.bot_events import load_events
+from package_loader import load_cogs
 from keep_alive import keep_alive
 
 
@@ -43,13 +42,9 @@ file_handler.setFormatter(formatter)
 logging.getLogger().addHandler(file_handler)
 
 
-# add all the commands to current instance of the bot
-logger.info("Adding commands")
-asyncio.run(load_commands(bot))
-
-# add all the events to current instance of the bot
-logger.info("Adding events")
-asyncio.run(load_events(bot))
+# add all commands and events to current instance of the bot
+logger.info("Loading Cogs and Groups")
+asyncio.run(load_cogs(bot))
 
 
 # run flask server to keep the bot running (needed for replit host)
