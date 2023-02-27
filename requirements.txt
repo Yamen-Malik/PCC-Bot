@@ -1,0 +1,4 @@
+discord.py==2.1.1
+emoji==2.2.0
+Flask==2.2.2
+requests==2.25.1
