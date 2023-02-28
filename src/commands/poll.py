@@ -135,33 +135,33 @@ class Poll(app_commands.Group):
 
         options = [s.strip() for s in options.split(",")]
 
-        # cut down default emojis to the number of options
         if emojis == DEFAULT_OPTION_EMOJIS:
-            emojis = emojis[: len(options) * 2]
+            emojis = emojis.split()
+            # cut down default emojis to the number of options
+            emojis = emojis[: len(options)]
+            emojis = list(map(PartialEmoji.from_str, emojis))
+        else:
+            emojis = emojis.split()
+            # only allow unicode or guild emojis
+            for i, emoji in enumerate(emojis):
+                partial_emoji = PartialEmoji.from_str(emoji)
+                if (
+                    not is_emoji(emoji)
+                    and partial_emoji not in interaction.guild.emojis
+                ):
+                    await interaction.response.send_message(
+                        "Invalid emoji! Please only use emojis that are available on this server.",
+                        ephemeral=True,
+                    )
+                    return
 
-        # only allow unicode or guild emojis
-        emojis = emojis.split()
-        for i, emoji in enumerate(emojis):
-            partial_emoji = PartialEmoji.from_str(emoji)
-            if not is_emoji(emoji) and partial_emoji not in interaction.guild.emojis:
-                await interaction.response.send_message(
-                    "Invalid emoji! Please only use emojis that are available on this server.",
-                    ephemeral=True,
-                )
-                return
-
-            emojis[i] = partial_emoji
+                emojis[i] = partial_emoji
 
         # validate options and emojis
         if len(options) != len(emojis):
             await interaction.response.send_message(
                 "Every option should have an emoji!", ephemeral=True
             )
-            return
-        if not all(
-            emoji.is_unicode_emoji() or emoji.is_custom_emoji() for emoji in emojis
-        ):
-            await interaction.response.send_message("Invalid emoji!", ephemeral=True)
             return
         if not (
             await self.validate_options(interaction, options)
