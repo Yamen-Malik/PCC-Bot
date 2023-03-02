@@ -13,12 +13,12 @@ class ChangeRole(Cog):
     @app_commands.command(name="change_role")
     @app_commands.guild_only()
     async def change_role(self, interaction: Interaction) -> None:
-        """Change your member role to your academic major"""
+        """Change your member role to any of the public roles"""
 
         roles = db[str(interaction.guild.id)]["new_member_roles"]
         if len(roles) < 2:
             await interaction.response.send_message(
-                "No majors to choose from.", ephemeral=True
+                "No available roles to choose from!", ephemeral=True
             )
 
         menu = create_menu(
@@ -32,7 +32,7 @@ class ChangeRole(Cog):
             ],
         )
         await interaction.response.send_message(
-            "Choose major:", view=menu, ephemeral=True
+            "Choose role:", view=menu, ephemeral=True
         )
 
 

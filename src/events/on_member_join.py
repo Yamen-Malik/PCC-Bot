@@ -66,7 +66,7 @@ class OnMemberJoin(Cog):
                     ButtonStyle.gray,
                 ],
             )
-            await channel.send("Select your major", view=view)
+            await channel.send("Choose role:", view=view)
         elif len(guild_db["new_member_roles"]) == 1:
             # give the member the only new member roles
             role_name = guild_db["new_member_roles"][0].lower()
