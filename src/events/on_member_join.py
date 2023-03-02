@@ -29,6 +29,7 @@ class OnMemberJoin(Cog):
         if not guild_db["welcome_new_members"]:
             return
 
+        # get channel by name
         channel = None
         for ch in guild.channels:
             if ch.name.lower() == guild_db["welcome_channel"].lower():
@@ -39,16 +40,25 @@ class OnMemberJoin(Cog):
             self.logger.debug("Welcome channel is not found.")
             return
 
+        # send welcome message
         message = random.choice(guild_db["welcome_messages"])
         message = message.replace(USER_MENTION, member.mention)
         message = message.replace(SERVER_MENTION, guild.name)
         await channel.send(message)
 
+        # send choose role view if the guild has more than one new member role
         if len(guild_db["new_member_roles"]) > 1:
             self.logger.debug("Sending role selection view.")
+
+            # setup a function to handle button clicks
+            handler = lambda interaction, button: choose_role(
+                interaction, button, member.id
+            )
+
+            # create and send view
             view = create_menu(
                 guild_db["new_member_roles"],
-                [choose_role],
+                [handler],
                 [
                     ButtonStyle.primary,
                     ButtonStyle.success,
@@ -58,6 +68,7 @@ class OnMemberJoin(Cog):
             )
             await channel.send("Select your major", view=view)
         elif len(guild_db["new_member_roles"]) == 1:
+            # give the member the only new member roles
             role_name = guild_db["new_member_roles"][0].lower()
             for role in guild.roles:
                 if role.name.lower() == role_name:
